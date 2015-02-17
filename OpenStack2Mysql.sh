@@ -1,7 +1,7 @@
 
 COMMANDS_FILE=commands.sh
 PHP_SCRIPT=csv_import.php
-FICHERO_TRAZA=/var/log/$0.log
+FICHERO_TRAZA=/var/log/`basename $0`.log
 MYSQL_CHAIN=""
 
 _DEBUG="yes"
@@ -118,8 +118,16 @@ CleanSpool( )
 rm -f spool/*
 
 }
+GetWorkingPath( )
+{
+  # GetWorking Path
+  FULL_SCRIPT_PATH=`readlink -f $0`
+  WORKING_PATH=`dirname $FULL_SCRIPT_PATH`
+  cd $WORKING_PATH 2>/dev/null
+}
 PreWork( )
 {
+GetWorkingPath
 # TODO:Load profile
 [ ! -f .credentials ] && MostrarLog "Error: .credentials file does not exist" && exit
 source .credentials
