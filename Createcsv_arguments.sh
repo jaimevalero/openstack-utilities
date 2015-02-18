@@ -6,9 +6,8 @@
 #
 # Create a csv file call nova_image_list.csv with the results
 
-source .credentials
-KEYSTONE_FILE=/root/keystonerc_admin_ldap
-source $KEYSTONE_FILE
+#source .credentials
+#source $KEYSTONE_FILE
 
 FICHERO_TRAZA=/var/log/$0.log
 MYSQL_CHAIN="mysql  -u ${MYSQL_USER} -p${MYSQL_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_DATABASE} "
@@ -73,24 +72,24 @@ rm -f $1.temp
 Execute( )
 {
  COMMAND=$@
- MostrarLog "Executing ------${@}------"
 
  # Create file to expand the shells and execute it
- # MostrarLog FILE *************$FILE*************
   echo "$COMMAND 2>/dev/null"> kk_exec && chmod +x kk_exec && ./kk_exec | grep -v :$ > $FILE_NAME
 
-rm -f ./kk_exec 
+ rm -f ./kk_exec 
 
-# Generamos un fichero para este tenant, quitamos la cabecera del csv, añadimos el tenant, etc
-./Generatecsv.sh $FILE_NAME  > $FILE_NAME.temp
-QuitarCabecera $FILE_NAME.temp
-sed -i "s/$/,$MY_PARAM/g" $FILE_NAME.temp
-cat $FILE_NAME.temp >> ./spool/$FILE_NAME.csv
-rm -f $FILE_NAME.temp $FILE_NAME
+ # Generamos un fichero para este tenant, quitamos la cabecera del csv, añadimos el tenant, etc
+  ./Generatecsv.sh $FILE_NAME  > $FILE_NAME.temp
+  QuitarCabecera $FILE_NAME.temp
+  sed -i "s/$/,$MY_PARAM/g" $FILE_NAME.temp
+  cat $FILE_NAME.temp >> ./spool/$FILE_NAME.csv
+  rm -f $FILE_NAME.temp $FILE_NAME
+
+  MostrarLog "Executing: ${@} to file: $FILE_NAME"
+
 }
 
 
-MostrarLog "Executing :::::::${@}:::::::"
 
 GetParameterList "${@}"
 
@@ -102,6 +101,7 @@ do
 
 done
 
+MostrarLog Resultados: Generado el fichero ./spool/$FILE_NAME.csv con `cat ./spool/$FILE_NAME.csv | wc -l` registros
 AñadirCabecera ./spool/$FILE_NAME.csv
  
 

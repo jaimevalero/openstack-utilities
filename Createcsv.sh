@@ -6,27 +6,37 @@
 #
 # Create a csv file call nova_image_list.csv with the results
 
-source .credentials
-KEYSTONE_FILE=/root/keystonerc_admin_ldap
+#source .credentials
+#KEYSTONE_FILE=/root/keystonerc_admin_ldap
 
 source $KEYSTONE_FILE
 
+FICHERO_TRAZA=/var/log/$0.log
+MostrarLog( )
+{
+         echo [`basename $0`] [`date +'%Y_%m_%d %H:%M:%S'`] [$$] [${FUNCNAME[1]}] $@  | /usr/bin/tee -a $FICHERO_TRAZA
+}
+
+
+
+
 Execute( )
 {
-COMMAND=$@
-echo "Executing ------${@}------"
+  COMMAND=$@
 
-# Create file to expand the shells and execute it
-FILE=`echo $COMMAND | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g'  | cut -c1-25 `
-echo FILE *************$FILE*************
-echo "$COMMAND 2>/dev/null"> kk_exec && chmod +x kk_exec && ./kk_exec | grep -v :$ > $FILE
+  # Create file to expand the shells and execute it
+  FILE=`echo $COMMAND | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g'  | cut -c1-25 `
+  MostrarLog "Executing: ${@} to file: $FILE"
 
-rm -f ./kk_exec 
+  echo "$COMMAND 2>/dev/null"> kk_exec && chmod +x kk_exec && ./kk_exec | grep -v :$ > $FILE
 
-./Generatecsv.sh $FILE > ./spool/$FILE.csv
-rm -f $FILE
+  rm -f ./kk_exec 
+
+  ./Generatecsv.sh $FILE > ./spool/$FILE.csv
+
+  rm -f $FILE
 }
-echo " "
-echo "Executing :::::::${@}:::::::"
 Execute "${@}"
+
+MostrarLog Generado el fichero ./spool/$FILE.csv con `cat ./spool/$FILE.csv | wc -l` registros
 
