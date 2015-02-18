@@ -6,8 +6,6 @@
 #
 # Create a csv file call nova_image_list.csv with the results
 
-#source .credentials
-#source $KEYSTONE_FILE
 
 FICHERO_TRAZA=/var/log/$0.log
 MYSQL_CHAIN="mysql  -u ${MYSQL_USER} -p${MYSQL_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_DATABASE} "

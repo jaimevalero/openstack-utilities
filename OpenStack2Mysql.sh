@@ -127,10 +127,19 @@ GetWorkingPath( )
 }
 PreWork( )
 {
+PROFILE=$1
+
+# Assign default profile if unset
+[ ! -f $PROFILE ] && PROFILE='.credentials'
+[ ${#PROFILE} -eq 0 ] && PROFILE='.credentials'
+
 GetWorkingPath
-# TODO:Load profile
-[ ! -f .credentials ] && MostrarLog "Error: .credentials file does not exist" && exit
-source .credentials
+
+
+# Load profile
+[ ! -f $PROFILE ] && MostrarLog "Error: $PROFILE file does not exist" && exit
+source $PROFILE
+source $KEYSTONE_FILE
 
 [ ! -d spool  ] && mkdir spool
 MYSQL_CHAIN="mysql  -u ${MYSQL_USER} -p${MYSQL_PASS} -h${MYSQL_HOSTNAME} "
@@ -138,7 +147,7 @@ $MYSQL_CHAIN -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE "
 
 CleanSpool
 }
-PreWork
+PreWork $1
 
 # First we load commands without arguments, needed to generate commands that need arguments like <tenant_id>
 Generate_Without_Arguments_Data

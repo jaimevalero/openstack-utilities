@@ -6,8 +6,6 @@
 #
 # Create a csv file call nova_image_list.csv with the results
 
-#source .credentials
-#KEYSTONE_FILE=/root/keystonerc_admin_ldap
 
 source $KEYSTONE_FILE
 
