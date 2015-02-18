@@ -1,13 +1,13 @@
 cinder list
-cinder service-list
 cinder quota-usage <tenant_name>
+cinder service-list
 keystone ec2-credentials-list
 keystone endpoint-list
 keystone role-list
 keystone service-list 
 keystone tenant-list
 keystone user-list 
-#keystone user-list --tenant <tenant_name>
+keystone user-list --tenant <tenant_name>
 neutron quota-list
 nova aggregate-list
 nova floating-ip-pool-list

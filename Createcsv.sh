@@ -34,7 +34,7 @@ Execute( )
 
   ./Generatecsv.sh $FILE > ./spool/$FILE.csv
 
-  rm -f $FILE
+###  rm -f $FILE
 }
 Execute "${@}"
 

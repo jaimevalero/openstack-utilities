@@ -40,8 +40,8 @@ PreWork( )
 ProcessHeader( )
 {
  # Get Second line, and format it to get fields that will be the columns of the mysql
- # Get rid of reserver words like limit
-  HEADER=` cat $FILE | head -2 | tail -1 |  sed -e 's/  *//g' | sed -e 's/^|//g' |  tr \| , | sed -e 's/,$//g'| tr '-' '_' | sed -e 's/Limit/Limite/g' `
+ # Get rid of reserved words like limit
+  HEADER=` cat $FILE | head -2 | tail -1 |  sed -e 's/  *//g' | sed -e 's/^|//g' |  tr \| , | sed -e 's/,$//g'| tr '-' '_' | sed -e 's/Limit/Limite/g' |  sed -e 's/Binary/Binario/g' `
   echo $HEADER
 }
 
