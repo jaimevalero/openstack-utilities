@@ -138,7 +138,7 @@ GetWorkingPath
 
 # Load profile
 [ ! -f $PROFILE ] && MostrarLog "Error: $PROFILE file does not exist" && exit
-MostrarLog INICIO: `basename $0 con profile $PROFILE`
+MostrarLog INICIO: `basename $0` con profile $PROFILE
 source $PROFILE
 source $KEYSTONE_FILE
 
