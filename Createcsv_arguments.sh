@@ -38,11 +38,7 @@ case $PARAMETER in
    tenant|tenant_name) PARAMETER_LIST=`$MYSQL_CHAIN -e " SELECT name AS QUITAR from keystone_tenant_list " | grep -v QUITAR  ` ;;
    hypervisor_id) PARAMETER_LIST=`$MYSQL_CHAIN -e " SELECT ID AS QUITAR from nova_hypervisor_list " | grep -v QUITAR  ` ;;
    hypervisor|hypervisor_name) PARAMETER_LIST=`$MYSQL_CHAIN -e " SELECT Hypervisorhostname AS QUITAR from nova_hypervisor_list " | grep -v QUITAR  ` ;;
-#   "jeep") echo "For $rental rental is Rs.5 per k/m.";;
-#   "bicycle") echo "For $rental rental 20 paisa per k/m.";;
-#   "enfield") echo "For $rental rental Rs.3  per k/m.";;
-#   "thunderbird") echo "For $rental rental Rs.5 per k/m.";;
-   *) echo "Sorry, I can not get a $rental rental  for you!";;
+   *) echo "Sorry, Unknown parameter $PARAMETER ";;
 esac
 
 MostrarLog PARAMETER_LIST=$PARAMETER_LIST
@@ -54,10 +50,13 @@ QuitarCabecera( )
 {
 MY_FILE=$1
 NUM_LINES=`cat $MY_FILE | wc -l`
-HEADER=`cat $MY_FILE | head -1`
-cat $MY_FILE  | tail -`expr $NUM_LINES - 1` > $MY_FILE.temp
-cp -f $MY_FILE.temp $MY_FILE
-rm -f $MY_FILE.temp
+if [ $NUM_LINES -ne 0 ] 
+then
+  HEADER=`cat $MY_FILE | head -1`
+  cat $MY_FILE  | tail -`expr $NUM_LINES - 1` > $MY_FILE.temp
+  cp -f $MY_FILE.temp $MY_FILE
+  rm -f $MY_FILE.temp
+fi
 }
 
 # Añade la cabecera al fichero final
@@ -77,13 +76,11 @@ Execute( )
  MostrarLog "Executing ------${@}------"
 
  # Create file to expand the shells and execute it
- #FILE=`echo $COMMAND | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g'  | cut -c1-25 `
  # MostrarLog FILE *************$FILE*************
   echo "$COMMAND 2>/dev/null"> kk_exec && chmod +x kk_exec && ./kk_exec | grep -v :$ > $FILE_NAME
 
 rm -f ./kk_exec 
 
-#./Generatecsv.sh $FILE_NAME |   >> ./spool/$FILE_NAME.csv
 # Generamos un fichero para este tenant, quitamos la cabecera del csv, añadimos el tenant, etc
 ./Generatecsv.sh $FILE_NAME  > $FILE_NAME.temp
 QuitarCabecera $FILE_NAME.temp
@@ -100,7 +97,7 @@ GetParameterList "${@}"
 for MY_PARAM in $PARAMETER_LIST
 do
   COMMAND_ITERATOR=`echo ${@}| sed -e "s/<$PARAMETER>/$MY_PARAM/g" `
-  echo "Executing :::::::${COMMAND_ITERATOR}:::::::"
+  #MostrarLog "Executing :::::::${COMMAND_ITERATOR}:::::::"
   Execute "${COMMAND_ITERATOR}"
 
 done
