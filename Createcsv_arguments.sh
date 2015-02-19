@@ -9,13 +9,44 @@
 
 FICHERO_TRAZA=/var/log/$0.log
 MYSQL_CHAIN="mysql  -u ${MYSQL_USER} -p${MYSQL_PASS} -h${MYSQL_HOSTNAME} ${MYSQL_DATABASE} "
-PARAMETER_LIST=""
+PARAMETER_LIST=./parameter-list
 PARAMETER=""
 MY_PARAM=""
 HEADER=""
+
+USAGE_WINDOW=365
+
 MostrarLog( )
 {
          echo [`basename $0`] [`date +'%Y_%m_%d %H:%M:%S'`] [$$] [${FUNCNAME[1]}] $@  | /usr/bin/tee -a $FICHERO_TRAZA
+}
+
+
+
+GetIntervalDates( ) 
+{
+for i in $(seq $USAGE_WINDOW)
+do
+  ayer=`expr $i + 1`
+  echo " --start "`date --date "$ayer day ago" +'%Y-%m-%d'`" --end "` date --date "$i day ago" +'%Y-%m-%d'` 
+done
+
+}
+
+
+FixForSpecialParameters( )
+{
+# Extract list of parameter from the parameter name
+case $PARAMETER in
+   tenant_id) continue ;;
+   tenant|tenant_name) continue ;; 
+   hypervisor_id)   continue ;; 
+   intervalo_date) sed -i 's/--start //g' ./spool/$FILE_NAME.csv ; sed -i 's/ --end /,/g' ./spool/$FILE_NAME.csv ; sed -i 's/intervalo_date/start_date,end_date/g' ./spool/$FILE_NAME.csv  ;;
+   hypervisor|hypervisor_name) continue ;; 
+   *) continue ;; 
+esac
+
+
 }
 
 GetParameterList( )
@@ -27,14 +58,16 @@ PARAMETER=` echo $@ | cut -d\> -f1 | cut -d\< -f2`
 
 FILE_NAME=`echo $@ | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g'  | cut -c1-25 `
 
-MostrarLog $PARAMETER
+MostrarLog All arguments=$@
+MostrarLog PARAMETER=$PARAMETER
 
 # Extract list of parameter from the parameter name
 case $PARAMETER in
-   tenant_id) PARAMETER_LIST=`$MYSQL_CHAIN -e " SELECT id AS QUITAR from keystone_tenant_list  " | grep -v QUITAR  ` ;;
-   tenant|tenant_name) PARAMETER_LIST=`$MYSQL_CHAIN -e " SELECT name AS QUITAR from keystone_tenant_list " | grep -v QUITAR  ` ;;
-   hypervisor_id) PARAMETER_LIST=`$MYSQL_CHAIN -e " SELECT ID AS QUITAR from nova_hypervisor_list " | grep -v QUITAR  ` ;;
-   hypervisor|hypervisor_name) PARAMETER_LIST=`$MYSQL_CHAIN -e " SELECT Hypervisorhostname AS QUITAR from nova_hypervisor_list " | grep -v QUITAR  ` ;;
+   tenant_id)          $MYSQL_CHAIN -e " SELECT id AS QUITAR from keystone_tenant_list  " | grep -v QUITAR > $PARAMETER_LIST ;;
+   tenant|tenant_name) $MYSQL_CHAIN -e " SELECT name AS QUITAR from keystone_tenant_list " grep -v QUITAR  > $PARAMETER_LIST  ;;
+   hypervisor_id)      $MYSQL_CHAIN -e " SELECT ID AS QUITAR from nova_hypervisor_list " | grep -v QUITAR  > $PARAMETER_LIST ;;
+   intervalo_date) GetIntervalDates  > $PARAMETER_LIST ;;
+   hypervisor|hypervisor_name) $MYSQL_CHAIN -e " SELECT Hypervisorhostname AS QUITAR from nova_hypervisor_list " | grep -v QUITAR > $PARAMETER_LIST  ;;
    *) echo "Sorry, Unknown parameter $PARAMETER ";;
 esac
 
@@ -54,6 +87,7 @@ then
   cp -f $MY_FILE.temp $MY_FILE
   rm -f $MY_FILE.temp
 fi
+MostrarLog HEADER=$HEADER
 }
 
 # Añade la cabecera al fichero final
@@ -77,13 +111,13 @@ Execute( )
  rm -f ./kk_exec 
 
  # Generamos un fichero para este tenant, quitamos la cabecera del csv, añadimos el tenant, etc
+  MostrarLog "Executing: ${@} to file: $FILE_NAME"
   ./Generatecsv.sh $FILE_NAME  > $FILE_NAME.temp
   QuitarCabecera $FILE_NAME.temp
   sed -i "s/$/,$MY_PARAM/g" $FILE_NAME.temp
   cat $FILE_NAME.temp >> ./spool/$FILE_NAME.csv
   rm -f $FILE_NAME.temp $FILE_NAME
 
-  MostrarLog "Executing: ${@} to file: $FILE_NAME"
 
 }
 
@@ -91,15 +125,18 @@ Execute( )
 
 GetParameterList "${@}"
 
-for MY_PARAM in $PARAMETER_LIST
+
+while read MY_PARAM 
 do
   COMMAND_ITERATOR=`echo ${@}| sed -e "s/<$PARAMETER>/$MY_PARAM/g" `
   #MostrarLog "Executing :::::::${COMMAND_ITERATOR}:::::::"
   Execute "${COMMAND_ITERATOR}"
-
-done
+done< $PARAMETER_LIST
 
 MostrarLog Resultados: Generado el fichero ./spool/$FILE_NAME.csv con `cat ./spool/$FILE_NAME.csv | wc -l` registros
 AñadirCabecera ./spool/$FILE_NAME.csv
- 
+
+FixForSpecialParameters
+
+#rm -f $PARAMETER_LIST 
 
