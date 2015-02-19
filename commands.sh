@@ -10,6 +10,7 @@ keystone user-list
 keystone user-list --tenant <tenant_name>
 neutron quota-list
 nova aggregate-list
+nova flavor-list
 nova floating-ip-pool-list
 nova host-list
 nova hypervisor-stats
