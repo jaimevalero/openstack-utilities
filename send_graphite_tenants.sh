@@ -43,7 +43,7 @@ sed  -i "s/ XXX/\.$METRIC/g"  $METRIC.tmp
 
 # Send to graphite
 cat $METRIC.tmp | nc $GRAPHITE_SERVER $GRAPHITE_PORT
- rm -f $METRIC.tmp 
+# rm -f $METRIC.tmp 
 }
 
 GenerateMetric Servers
