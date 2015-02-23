@@ -29,4 +29,4 @@ Conver the format returned from a openstack service query, into a csv file
  prod-test-01,compute,availzone3
 ```
 
-Then you should consider loading the csv into a mysql table, to work with it.
+Then we load into table in a mysql, and also we send the data to a graphite server
