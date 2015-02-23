@@ -60,19 +60,21 @@ FILE_NAME=`echo $@ | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*
 
 MostrarLog All arguments=$@
 MostrarLog PARAMETER=$PARAMETER
+MostrarLog MYSQL_CHAIN=$MYSQL_CHAIN
 
 # Extract list of parameter from the parameter name
 case $PARAMETER in
-   tenant_id)          $MYSQL_CHAIN -e " SELECT id AS QUITAR from keystone_tenant_list  " | grep -v QUITAR > $PARAMETER_LIST ;;
-   tenant|tenant_name) $MYSQL_CHAIN -e " SELECT name AS QUITAR from keystone_tenant_list " grep -v QUITAR  > $PARAMETER_LIST  ;;
-   hypervisor_id)      $MYSQL_CHAIN -e " SELECT ID AS QUITAR from nova_hypervisor_list " | grep -v QUITAR  > $PARAMETER_LIST ;;
+   tenant_id)          echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from keystone_tenant_list  \" | grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
+   tenant|tenant_name) echo " $MYSQL_CHAIN -e \" SELECT name AS QUITAR from keystone_tenant_list \" | grep -v QUITAR  > $PARAMETER_LIST " > ./kk-exec ;;
+   hypervisor_id)      echo " $MYSQL_CHAIN -e \" SELECT ID AS QUITAR from nova_hypervisor_list \" | grep -v QUITAR  > $PARAMETER_LIST "   > ./kk-exec ;;
    intervalo_date) GetIntervalDates  > $PARAMETER_LIST ;;
-   hypervisor|hypervisor_name) $MYSQL_CHAIN -e " SELECT Hypervisorhostname AS QUITAR from nova_hypervisor_list " | grep -v QUITAR > $PARAMETER_LIST  ;;
+   hypervisor|hypervisor_name) echo " $MYSQL_CHAIN -e \" SELECT Hypervisorhostname AS QUITAR from nova_hypervisor_list \" | grep -v QUITAR > $PARAMETER_LIST"  > ./kk-exec  ;;
    *) echo "Sorry, Unknown parameter $PARAMETER ";;
 esac
 
-MostrarLog PARAMETER_LIST=$PARAMETER_LIST
+[ -f kk-exec ] && chmod +x kk-exec ; ./kk-exec ; rm -f ./kk-exec 2>/dev/null
 
+MostrarLog PARAMETER_LIST=`cat $PARAMETER_LIST`
 }
 
 # REmove the header of a csv
@@ -116,6 +118,7 @@ Execute( )
   QuitarCabecera $FILE_NAME.temp
   sed -i "s/$/,$MY_PARAM/g" $FILE_NAME.temp
   cat $FILE_NAME.temp >> ./spool/$FILE_NAME.csv
+  MostrarLog "Fichero $FILE_NAME.temp  añade" ` cat $FILE_NAME.temp  | wc -l` "registros a ./spool/$FILE_NAME.csv"
   rm -f $FILE_NAME.temp $FILE_NAME
 
 
@@ -138,5 +141,5 @@ AñadirCabecera ./spool/$FILE_NAME.csv
 
 FixForSpecialParameters
 
-#rm -f $PARAMETER_LIST 
+rm -f $PARAMETER_LIST 
 

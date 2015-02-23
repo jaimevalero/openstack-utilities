@@ -23,3 +23,4 @@ nova list --all-tenants
 nova net-list
 nova quota-defaults
 nova usage-list <intervalo_date>
+nova --os-tenant-name <tenant_name> list

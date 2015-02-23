@@ -161,7 +161,7 @@ Generate_With_Arguments_Data
 Load_Data
 
 # Send to graphite
-send_graphite_tenants.sh $1
+#./send_graphite_tenants.sh $1
 
 MostrarLog FIN 
 
