@@ -1,4 +1,3 @@
-nova usage-list <intervalo_date>
 cinder list
 cinder quota-usage <tenant_name>
 cinder service-list

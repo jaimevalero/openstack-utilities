@@ -162,6 +162,7 @@ Load_Data
 
 # Send to graphite
 ./send_graphite_tenants.sh $1
+./send_graphite_vmware.sh $1
 
 MostrarLog FIN 
 
