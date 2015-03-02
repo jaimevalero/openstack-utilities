@@ -1,0 +1,33 @@
+ # Mysq and host
+ # Change this according your mysql server instance
+ export MYSQL_USER=replace-for-your-value
+ export MYSQL_PASS=replace-for-your-value
+ export MYSQL_HOSTNAME=replace-for-your-value
+
+ # DB where to store and retrieve openstack related info
+ # The script will create it if neccesary
+ export MYSQL_DATABASE=replace-for-your-value
+
+ # Open Stack Credentials
+ export OS_USERNAME=replace-for-your-value
+ export OS_TENANT_NAME=replace-for-your-value
+ export OS_PASSWORD=replace-for-your-value
+ export OS_AUTH_URL=https://<replace-for-your-value>:35357/v2.0
+ export OS_CACERT=replace-for-your-value
+ 
+ # Graphite endpoint
+ export GRAPHITE_SERVER=replace-for-your-value
+ export GRAPHITE_PORT=2003
+
+ # Graphite metrics path
+ export BASE_METRIC_OPENSTACK=stats.<replace-for-your-value>
+ export SQL_OPENSTACK="select Name,'XXX',METRIC,unix_timestamp(str_to_date(start_date,'%Y-%m-%d')) from   keystone_tenant_list , nova_usage_list_intervalo WHERE TenantID = ID"
+
+ # From now to the end is not used if you do not have vmware vcenter 
+ export BASE_METRIC_VMWARE=stats.inventario.daily_usage.epg.vmware
+
+ # SQL to extract info from VMWare
+ export SQL_VMWARE="select ID,'XXX',METRIC, unix_timestamp(str_to_date(DATE,'%Y-%m-%d'))  from  ( SELECT initiative.id AS ID, COUNT(VM_VirtualMachine.VVMname) AS Servers ,SUM(VVMmemorySizeMB)*24 AS RAMMB_Hours ,SUM(VVMnumCpu)*24 AS CPUHours ,SUM(VM_VirtualMachine.VVMdiskMB)*24/1024 AS DiskGB_Hours, DATE FROM desarrollo.VM_VirtualMachine,inventario.vmlist,inventario.initiative, inventario.user WHERE  vmlist.vm = VM_VirtualMachine.VVMname AND vmlist.responsable = inventario.user.uid AND initiative.id = user.initiative AND VVMpowerState='poweredOn' GROUP BY id,DATE ) A"
+
+
+
