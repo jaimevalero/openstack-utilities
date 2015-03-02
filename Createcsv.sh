@@ -7,15 +7,19 @@
 # Create a csv file call nova_image_list.csv with the results
 
 
-source $KEYSTONE_FILE
+#source $KEYSTONE_FILE
 
 FICHERO_TRAZA=/var/log/$0.log
 MostrarLog( )
 {
-         echo [`basename $0`] [`date +'%Y_%m_%d %H:%M:%S'`] [$$] [${FUNCNAME[1]}] $@  | /usr/bin/tee -a $FICHERO_TRAZA
+   echo [`basename $0`] [`date +'%Y_%m_%d %H:%M:%S'`] [$$] [${FUNCNAME[1]}] $@  | /usr/bin/tee -a $FICHERO_TRAZA
 }
 
-
+PostWork( )
+{
+  MostrarLog Generado el fichero ./spool/$FILE.csv con `cat ./spool/$FILE.csv | wc -l` registros
+  rm -f $FILE
+}
 
 
 Execute( )
@@ -33,7 +37,8 @@ Execute( )
   ./Generatecsv.sh $FILE > ./spool/$FILE.csv
 
 }
+
 Execute "${@}"
 
-MostrarLog Generado el fichero ./spool/$FILE.csv con `cat ./spool/$FILE.csv | wc -l` registros
+PostWork
 
