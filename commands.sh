@@ -13,6 +13,7 @@ neutron floatingip-list
 nova aggregate-list
 nova flavor-list
 nova floating-ip-pool-list
+nova diagnostics <instance>
 nova host-list
 nova hypervisor-stats
 nova hypervisor-list
