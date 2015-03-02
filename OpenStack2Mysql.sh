@@ -4,7 +4,7 @@ PHP_SCRIPT=csv_import.php
 FICHERO_TRAZA=/var/log/`basename $0`.log
 MYSQL_CHAIN=""
 
-_DEBUG="yes"
+_DEBUG="no"
 function DEBUG()
 {
  [ "$_DEBUG" == "yes" ] &&  $@
@@ -125,13 +125,61 @@ GetWorkingPath( )
   WORKING_PATH=`dirname $FULL_SCRIPT_PATH`
   cd $WORKING_PATH 2>/dev/null
 }
+
+
+#######################################################
+#
+# PivotTable
+# Convert a key table value like this
+#
+# mysql>  select Property,Value from  nova_hypervisor_show_hype where hypervisor = 'prod-epg-ostcn-01.hi.inet'AND VALUE not like '%{%' ; 
+# +----------------------+---------------------------+
+# | Property             | Value                     |
+# +----------------------+---------------------------+
+# | hypervisor_hostname  | prod-epg-ostcn-01.hi.inet |
+# | free_disk_gb         | 100                       |
+# | hypervisor_version   | 12001                     |
+# | disk_available_least | 41                        |
+#
+#
+# Into a pivot table like this
+# 
+#+------------------+----------------------+--------------+-------------+---------------------------+-----------------+--------------------+------+----------+---------------+-----------+----------------+-------------+-------------------+------------+-------+------------+
+#| current_workload | disk_available_least | free_disk_gb | free_ram_mb | hypervisor_hostname       | hypervisor_type | hypervisor_version | id   | local_gb | local_gb_used | memory_mb | memory_mb_used | running_vms | service_host      | service_id | vcpus | vcpus_used |
+#+------------------+----------------------+--------------+-------------+---------------------------+-----------------+--------------------+------+----------+---------------+-----------+----------------+-------------+-------------------+------------+-------+------------+
+#| 0                | 41                   | 100          | 32730       | prod-epg-ostcn-01.hi.inet | QEMU            | 12001              | 2    | 600      | 500           | 96730     | 64000          | 25          | prod-epg-ostcn-01 | 6          | 24    | 33  
+#######################################################
+PivotTable( )
+{
+  MY_TABLA=nova_hypervisor_show_hype_pivot
+
+  rm -f field_*
+  PHP_SCRIPT=csv_import.php
+  export MYSQL_CHAIN2=" mysql -u$MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOSTNAME $MYSQL_DATABASE" 
+
+  # Extract a file for each attribute of the key value table
+  FIELD_LIST=`$MYSQL_CHAIN2 -e ' SELECT Property AS QUITAR_QUITAR FROM nova_hypervisor_show_hype WHERE Property != "cpu_info" group by Property ' | grep -v QUITAR`
+  for FIELD in `echo $FIELD_LIST`
+  do
+    $MYSQL_CHAIN2 -e " SELECT VALUE AS $FIELD from nova_hypervisor_show_hype WHERE Property = '$FIELD' group by hypervisor  order by hypervisor ;" > field_$FIELD
+  done
+  # Merge all attribute files into a single one 
+  paste -d',' field_* > $MY_TABLA
+  php ${PHP_SCRIPT} $MY_TABLA $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME
+
+  rm -f field_*
+  CheckTable $MY_TABLA
+
+}
+
+
 PreWork( )
 {
 PROFILE=$1
 
 # Assign default profile if unset
-[ ! -f $PROFILE ] && PROFILE='.credentials'
-[ ${#PROFILE} -eq 0 ] && PROFILE='.credentials'
+[ ! -f $PROFILE ] && PROFILE='profile/.profile_desarrollo'
+[ ${#PROFILE} -eq 0 ] && PROFILE='profile/.profile_desarrollo'
 
 GetWorkingPath
 
@@ -140,7 +188,7 @@ GetWorkingPath
 [ ! -f $PROFILE ] && MostrarLog "Error: $PROFILE file does not exist" && exit
 MostrarLog INICIO: `basename $0` con profile $PROFILE
 source $PROFILE
-source $KEYSTONE_FILE
+#source $KEYSTONE_FILE
 
 [ ! -d spool  ] && mkdir spool
 MYSQL_CHAIN="mysql  -u ${MYSQL_USER} -p${MYSQL_PASS} -h${MYSQL_HOSTNAME} "
@@ -161,8 +209,10 @@ Generate_With_Arguments_Data
 Load_Data
 
 # Send to graphite
-./send_graphite_tenants.sh $1
-./send_graphite_vmware.sh $1
+
+./send_graphite.sh $PROFILE TENANTS
+./send_graphite.sh $PROFILE VMWARE
+
 
 MostrarLog FIN 
 
