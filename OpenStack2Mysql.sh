@@ -45,7 +45,7 @@ CheckTable( )
 InsertTable( )
 {
 #  DEBUG MostrarLog $1
-  MY_TABLA=`echo $1 | cut -d\. -f1`
+  MY_TABLA=`echo $1 | cut -d\. -f1 `
 
   MostrarLog php ${PHP_SCRIPT} spool/$MY_TABLA.csv $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME 
 
@@ -69,11 +69,11 @@ Load_Data( )
 # Load Into DB
 for TABLA in `  ls -1 spool/ | cut -d\. -f1 `
 do
-
   MostrarLog "Loading table: $MYSQL_DATABASE.$TABLA"
   DropTable $TABLA
   InsertTable $TABLA
 done 
+
 }
 
 
@@ -175,11 +175,12 @@ PivotTable( )
 
 PreWork( )
 {
+clear
 PROFILE=$1
 
 # Assign default profile if unset
-[ ! -f $PROFILE ] && PROFILE='profile/.profile_desarrollo'
-[ ${#PROFILE} -eq 0 ] && PROFILE='profile/.profile_desarrollo'
+[ ! -f $PROFILE ] && PROFILE='profiles/.profile_desarrollo'
+[ ${#PROFILE} -eq 0 ] && PROFILE='profiles/.profile_desarrollo'
 
 GetWorkingPath
 
@@ -207,7 +208,7 @@ CleanSpool
  
 Generate_With_Arguments_Data
 Load_Data
-
+exit
 # Send to graphite
 
 ./send_graphite.sh $PROFILE TENANTS

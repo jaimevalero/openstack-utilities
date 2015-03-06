@@ -1,3 +1,7 @@
+#ceilometer statistics --meter memory -q 'resource_id=<instance>'
+#ceilometer statistics --meter instance -q 'resource_id=<instance>'
+#ceilometer statistics --meter disk.root.size -q 'resource_id=<instance>'
+#ceilometer statistics --meter disk.ephemeral.size -q 'resource_id=<instance>'
 cinder list
 cinder quota-usage <tenant_name>
 cinder service-list

@@ -13,6 +13,7 @@ PARAMETER_LIST=./parameter-list
 PARAMETER=""
 MY_PARAM=""
 HEADER=""
+MAX_HEADER_LENGTH=0
 
 USAGE_WINDOW=365
 
@@ -33,11 +34,35 @@ done
 
 }
 
+# Add a row with the date to a csv column
+AddDateColumn( )
+{
+  MY_FILE=$1
+  TODAY_FILE=/tmp/today_file
+  MY_DATE=`date +'%Y-%m-%d'`
+  TODAY_FILE=/tmp/today_file
+ 
+  MY_NUM_LINE=`cat $MY_FILE | wc -l`
+
+  # First we add a file withe header = start_date and as lines as the argument file
+  echo  " printf \"$MY_DATE\n%.0s\"  {1..$MY_NUM_LINE}" > kk-date
+  # Replace first line to "start_date"
+  chmod +x kk-date && ./kk-date |  sed '1 s/^.*$/start_date/g' > $TODAY_FILE
+
+  # Merge two files
+  paste -d',' $MY_FILE $TODAY_FILE >  ${MY_FILE}.tmp
+  cp -f  $MY_FILE.tmp  $MY_FILE
+
+  # Remove temp files
+  rm -f $MY_FILE kk-date $MY_FILE.tmp
+
+}
 
 FixForSpecialParameters( )
 {
 # Extract list of parameter from the parameter name
 case $PARAMETER in
+   instance) AddDateColumn ./spool/$FILE_NAME.csv ; continue;;
    tenant_id) continue ;;
    tenant|tenant_name) continue ;; 
    hypervisor_id)   continue ;; 
@@ -56,7 +81,7 @@ GetParameterList( )
 # Get parameter to be replaced
 PARAMETER=` echo $@ | cut -d\> -f1 | cut -d\< -f2`
 
-FILE_NAME=`echo $@ | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g'  | cut -c1-25 `
+FILE_NAME=`echo $@ | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g' |sed -e 's/statistics//g' | sed -e 's/meter//g' | sed -e 's/\(_\)*/\1/g' | cut -c1-25 `
 
 MostrarLog All arguments=$@
 MostrarLog PARAMETER=$PARAMETER
@@ -64,6 +89,7 @@ MostrarLog MYSQL_CHAIN=$MYSQL_CHAIN
 
 # Extract list of parameter from the parameter name
 case $PARAMETER in
+   instance)           echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from nova_os_tenant_name_tenan  \" | grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
    tenant_id)          echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from keystone_tenant_list  \" | grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
    tenant|tenant_name) echo " $MYSQL_CHAIN -e \" SELECT name AS QUITAR from keystone_tenant_list \" | grep -v QUITAR  > $PARAMETER_LIST " > ./kk-exec ;;
    hypervisor_id)      echo " $MYSQL_CHAIN -e \" SELECT ID AS QUITAR from nova_hypervisor_list \" | grep -v QUITAR  > $PARAMETER_LIST "   > ./kk-exec ;;
@@ -81,9 +107,13 @@ MostrarLog PARAMETER_LIST=`cat $PARAMETER_LIST`
 QuitarCabecera( )
 {
 MY_FILE=$1
-NUM_LINES=`cat $MY_FILE | wc -l`
+NUM_LINES=`cat $MY_FILE | grep \, | wc -l`
+MostrarLog NUM_LINES=$NUM_LINES
+MostrarLog Contenidos $MY_FILE
+
 if [ $NUM_LINES -ne 0 ] 
 then
+  # Skip not responses
   HEADER=`cat $MY_FILE | head -1`
   cat $MY_FILE  | tail -`expr $NUM_LINES - 1` > $MY_FILE.temp
   cp -f $MY_FILE.temp $MY_FILE
@@ -114,13 +144,19 @@ Execute( )
 
  # Generamos un fichero para este tenant, quitamos la cabecera del csv, añadimos el tenant, etc
   MostrarLog "Executing: ${@} to file: $FILE_NAME"
-  ./Generatecsv.sh $FILE_NAME  > $FILE_NAME.temp
-  QuitarCabecera $FILE_NAME.temp
-  sed -i "s/$/,$MY_PARAM/g" $FILE_NAME.temp
-  cat $FILE_NAME.temp >> ./spool/$FILE_NAME.csv
-  MostrarLog "Fichero $FILE_NAME.temp  añade" ` cat $FILE_NAME.temp  | wc -l` "registros a ./spool/$FILE_NAME.csv"
-  rm -f $FILE_NAME.temp $FILE_NAME
+  ./Generatecsv.sh $FILE_NAME  > $FILE_NAME.temp 2>/dev/null
 
+ # Detect empty response, to skip it
+  if [ `cat $FILE_NAME.temp | grep "," | wc -l  ` -eq 0  ] 
+  then
+    MostrarLog "Detectada respuesta vacia para: $COMMAND" 
+  else
+    QuitarCabecera $FILE_NAME.temp
+    sed -i "s/$/,$MY_PARAM/g" $FILE_NAME.temp
+    cat $FILE_NAME.temp >> ./spool/$FILE_NAME.csv
+    MostrarLog "Fichero $FILE_NAME.temp  añade" ` cat $FILE_NAME.temp  | wc -l` "registros a ./spool/$FILE_NAME.csv"
+    rm -f $FILE_NAME.temp $FILE_NAME
+  fi
 
 }
 

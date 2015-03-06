@@ -27,7 +27,7 @@ Execute( )
   COMMAND=$@
 
   # Create file to expand the shells and execute it
-  FILE=`echo $COMMAND | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g'  | cut -c1-25 `
+  FILE=`echo $COMMAND | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g'   | cut -c1-25 `
   MostrarLog "Executing: ${@} to file: $FILE"
 
   echo "$COMMAND 2>/dev/null"> kk_exec && chmod +x kk_exec && ./kk_exec | grep -v :$ > $FILE
