@@ -208,11 +208,11 @@ CleanSpool
  
 Generate_With_Arguments_Data
 Load_Data
-exit
+
 # Send to graphite
 
-./send_graphite.sh $PROFILE TENANTS
-./send_graphite.sh $PROFILE VMWARE
+#./send_graphite.sh $PROFILE TENANTS
+#./send_graphite.sh $PROFILE VMWARE
 
 
 MostrarLog FIN 

@@ -54,15 +54,34 @@ AddDateColumn( )
   cp -f  $MY_FILE.tmp  $MY_FILE
 
   # Remove temp files
-  rm -f $MY_FILE kk-date $MY_FILE.tmp
+  rm -f kk-date $MY_FILE.tmp
 
+}
+
+#
+# ReplaceHEXtoIPv4
+#
+# Replace inline HEX ipv4 addresses like :
+#  736bec8c 
+#
+# into human format like : 
+# 115.107.236.140
+ReplaceHEXtoIPv4( )
+{
+MY_FILE=$1
+for ip_hex in `cat $MY_FILE  | grep -E --colour "^tap" | cut -c4-11 | sort -du`
+do
+  ip_hex_temp=`echo $ip_hex | sed -r 's/(..)/0x\1 /g'`
+  ip_ipv4=`printf '%d.%d.%d.%d\n' $ip_hex_temp `
+  sed -i "s/tap${ip_hex}/tap_${ip_ipv4}/g"  $MY_FILE
+ done
 }
 
 FixForSpecialParameters( )
 {
 # Extract list of parameter from the parameter name
 case $PARAMETER in
-   instance) AddDateColumn ./spool/$FILE_NAME.csv ; continue;;
+   instance) AddDateColumn ./spool/$FILE_NAME.csv; ReplaceHEXtoIPv4 ./spool/$FILE_NAME.csv ; continue;;
    tenant_id) continue ;;
    tenant|tenant_name) continue ;; 
    hypervisor_id)   continue ;; 
@@ -123,14 +142,14 @@ MostrarLog HEADER=$HEADER
 }
 
 # Añade la cabecera al fichero final
-AñadirCabecera( )
+AnyadirCabecera( )
 {
-echo $HEADER,$PARAMETER | tr '-' '_' > $1.temp
+echo ${HEADER},${PARAMETER} | tr '-' '_' > $1.temp
 
 cat $1 >> $1.temp
 cp -rf $1.temp $1
 rm -f $1.temp
-
+MostrarLog Cabecera de $1:` head -1 $1`
 }
 
 Execute( )
@@ -173,7 +192,7 @@ do
 done< $PARAMETER_LIST
 
 MostrarLog Resultados: Generado el fichero ./spool/$FILE_NAME.csv con `cat ./spool/$FILE_NAME.csv | wc -l` registros
-AñadirCabecera ./spool/$FILE_NAME.csv
+AnyadirCabecera ./spool/$FILE_NAME.csv
 
 FixForSpecialParameters
 
