@@ -1,10 +1,14 @@
-#ceilometer statistics --meter memory -q 'resource_id=<instance>'
-#ceilometer statistics --meter instance -q 'resource_id=<instance>'
-#ceilometer statistics --meter disk.root.size -q 'resource_id=<instance>'
-#ceilometer statistics --meter disk.ephemeral.size -q 'resource_id=<instance>'
+# CeiloMeter Metrics
+ceilometer sample-list -m instance -q"timestamp<today>"
+ceilometer sample-list -m vcpus -q"timestamp<today>"
+ceilometer sample-list -m memory -q"timestamp<today>"
+ceilometer sample-list -m disk.ephemeral.size -q"timestamp<today>"
+ceilometer sample-list -m disk.root.size -q"timestamp<today>"
+# Cinder
 cinder list
 cinder quota-usage <tenant_name>
 cinder service-list
+# KeyStone
 keystone ec2-credentials-list
 keystone endpoint-list
 keystone role-list
@@ -12,8 +16,10 @@ keystone service-list
 keystone tenant-list
 keystone user-list 
 keystone user-list --tenant <tenant_name>
+# Neutron
 neutron quota-list
 neutron floatingip-list
+# Nova
 nova aggregate-list
 nova flavor-list
 nova floating-ip-pool-list

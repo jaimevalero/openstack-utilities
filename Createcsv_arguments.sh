@@ -58,30 +58,19 @@ AddDateColumn( )
 
 }
 
-#
-# ReplaceHEXtoIPv4
-#
-# Replace inline HEX ipv4 addresses like :
-#  736bec8c 
-#
-# into human format like : 
-# 115.107.236.140
-ReplaceHEXtoIPv4( )
+# Fix Metrics for graphite
+FixRx( )
 {
-MY_FILE=$1
-for ip_hex in `cat $MY_FILE  | grep -E --colour "^tap" | cut -c4-11 | sort -du`
-do
-  ip_hex_temp=`echo $ip_hex | sed -r 's/(..)/0x\1 /g'`
-  ip_ipv4=`printf '%d.%d.%d.%d\n' $ip_hex_temp `
-  sed -i "s/tap${ip_hex}/tap_${ip_ipv4}/g"  $MY_FILE
- done
+  MY_FILE=$1
+  sed -i "s/_rx\,/_rx_traffic\,/g"  $MY_FILE
+  sed -i "s/_tx\,/_tx_traffic\,/g"  $MY_FILE
 }
 
 FixForSpecialParameters( )
 {
 # Extract list of parameter from the parameter name
 case $PARAMETER in
-   instance) AddDateColumn ./spool/$FILE_NAME.csv; ReplaceHEXtoIPv4 ./spool/$FILE_NAME.csv ; continue;;
+   instance) AddDateColumn ./spool/$FILE_NAME.csv;FixRx ./spool/$FILE_NAME.csv  ;continue;;
    tenant_id) continue ;;
    tenant|tenant_name) continue ;; 
    hypervisor_id)   continue ;; 
@@ -100,7 +89,7 @@ GetParameterList( )
 # Get parameter to be replaced
 PARAMETER=` echo $@ | cut -d\> -f1 | cut -d\< -f2`
 
-FILE_NAME=`echo $@ | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g' |sed -e 's/statistics//g' | sed -e 's/meter//g' | sed -e 's/\(_\)*/\1/g' | cut -c1-25 `
+FILE_NAME=`echo $@ | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g' |sed -e 's/statistics//g' | sed -e 's/meter//g' | sed -e 's/\(_\)*/\1/g' |  sed -e 's/sample_list//g' | sed -e 's/__/_/g'  |cut -c1-25 `
 
 MostrarLog All arguments=$@
 MostrarLog PARAMETER=$PARAMETER
@@ -108,12 +97,14 @@ MostrarLog MYSQL_CHAIN=$MYSQL_CHAIN
 
 # Extract list of parameter from the parameter name
 case $PARAMETER in
-   instance)           echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from nova_os_tenant_name_tenan  \" | grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
+   instance)           echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from nova_os_tenant_name_tenan   \" | grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
    tenant_id)          echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from keystone_tenant_list  \" | grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
    tenant|tenant_name) echo " $MYSQL_CHAIN -e \" SELECT name AS QUITAR from keystone_tenant_list \" | grep -v QUITAR  > $PARAMETER_LIST " > ./kk-exec ;;
    hypervisor_id)      echo " $MYSQL_CHAIN -e \" SELECT ID AS QUITAR from nova_hypervisor_list \" | grep -v QUITAR  > $PARAMETER_LIST "   > ./kk-exec ;;
    intervalo_date) GetIntervalDates  > $PARAMETER_LIST ;;
    hypervisor|hypervisor_name) echo " $MYSQL_CHAIN -e \" SELECT Hypervisorhostname AS QUITAR from nova_hypervisor_list \" | grep -v QUITAR > $PARAMETER_LIST"  > ./kk-exec  ;;
+   today) echo ">"`date +'%Y-%m-%d'`"T00:00" > $PARAMETER_LIST;;
+
    *) echo "Sorry, Unknown parameter $PARAMETER ";;
 esac
 
