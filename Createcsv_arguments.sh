@@ -103,7 +103,7 @@ case $PARAMETER in
    hypervisor_id)      echo " $MYSQL_CHAIN -e \" SELECT ID AS QUITAR from nova_hypervisor_list \" | grep -v QUITAR  > $PARAMETER_LIST "   > ./kk-exec ;;
    intervalo_date) GetIntervalDates  > $PARAMETER_LIST ;;
    hypervisor|hypervisor_name) echo " $MYSQL_CHAIN -e \" SELECT Hypervisorhostname AS QUITAR from nova_hypervisor_list \" | grep -v QUITAR > $PARAMETER_LIST"  > ./kk-exec  ;;
-   today) echo ">"`date +'%Y-%m-%d'`"T00:00" > $PARAMETER_LIST;;
+   today) echo ">"`date --date "20 day ago" +'%Y-%m-%d'`"T00:00" > $PARAMETER_LIST;;
 
    *) echo "Sorry, Unknown parameter $PARAMETER ";;
 esac

@@ -165,13 +165,46 @@ PivotTable( )
   done
   # Merge all attribute files into a single one 
   paste -d',' field_* > $MY_TABLA
+  $MYSQL_CHAIN2 -e " DROP TABLE $MY_TABLA "
   php ${PHP_SCRIPT} $MY_TABLA $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME
 
   rm -f field_*
   CheckTable $MY_TABLA
 
 }
+PivotTable2( )
+{
+  MY_TABLA=nova_show_instance_pivot
 
+  rm -f field_*
+  PHP_SCRIPT=csv_import.php
+  export MYSQL_CHAIN2=" mysql -u$MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOSTNAME $MYSQL_DATABASE"
+
+  # Extract a file for each attribute of the key value table
+  FIELD_LIST=`$MYSQL_CHAIN2 -e "  SELECT Property AS QUITAR from nova_show_instance WHERE PROPERTY  NOT LIKE '%Network' group by Property " | grep -v QUITAR `
+  MostrarLog FIELD_LIST: $FIELD_LIST
+  for FIELD in `echo $FIELD_LIST`
+  do
+    MostrarLog " $MYSQL_CHAIN2 -e \" SELECT VALUE AS $FIELD from nova_show_instance WHERE Property = '$FIELD' group by instance  order by instance ; \""
+    FIELD_FILTERED=`echo $FIELD |  tr ':' '_'| tr '-' '_' `
+    $MYSQL_CHAIN2 -e " SELECT VALUE AS $FIELD_FILTERED from nova_show_instance WHERE Property = '$FIELD' group by instance  order by instance ; "    > field_$FIELD
+  done
+  # Merge all attribute files into a single one 
+  paste -d',' field_* > $MY_TABLA
+  $MYSQL_CHAIN2 -e " DROP TABLE $MY_TABLA "
+  php ${PHP_SCRIPT} $MY_TABLA $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME
+
+  rm -f field_*
+  CheckTable $MY_TABLA
+
+
+}
+PostWork( )
+{
+ # PivotTable
+  
+  PivotTable2
+}
 
 PreWork( )
 {
@@ -209,10 +242,11 @@ CleanSpool
 Generate_With_Arguments_Data
 Load_Data
 
+PostWork
 # Send to graphite
 
-#./send_graphite.sh $PROFILE TENANTS
-#./send_graphite.sh $PROFILE VMWARE
+./send_graphite.sh $PROFILE TENANTS
+./send_graphite.sh $PROFILE VMWARE
 
 
 MostrarLog FIN 
