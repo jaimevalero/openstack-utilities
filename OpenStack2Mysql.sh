@@ -194,16 +194,74 @@ PivotTable2( )
   $MYSQL_CHAIN2 -e " DROP TABLE $MY_TABLA "
   php ${PHP_SCRIPT} $MY_TABLA $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME
 
-  rm -f field_*
+  rm -f field_* $MY_TABLA
   CheckTable $MY_TABLA
+}
+
+PivotTable3( )
+{
+  MY_TABLA=cinder_show_volume_id_pivot
+  TABLE_TO_PIVOT=cinder_show_volume_id
+  KEY_COLUMN=volume_id
+  rm -f field_*
+  PHP_SCRIPT=csv_import.php
+  export MYSQL_CHAIN2=" mysql -u$MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOSTNAME $MYSQL_DATABASE"
+
+  # Extract a file for each attribute of the key value table
+  FIELD_LIST=`$MYSQL_CHAIN2 -e "  SELECT Property AS QUITAR from $TABLE_TO_PIVOT WHERE PROPERTY  NOT LIKE '%Network' group by Property " | grep -v QUITAR `
+  MostrarLog FIELD_LIST: $FIELD_LIST
+  for FIELD in `echo $FIELD_LIST`
+  do
+    MostrarLog " $MYSQL_CHAIN2 -e \" SELECT VALUE AS $FIELD from $TABLE_TO_PIVOT WHERE Property = '$FIELD' group by $KEY_COLUMN  order by $KEY_COLUMN ; \""
+    FIELD_FILTERED=`echo $FIELD |  tr ':' '_'| tr '-' '_' `
+    $MYSQL_CHAIN2 -e " SELECT VALUE AS $FIELD_FILTERED from $TABLE_TO_PIVOT WHERE Property = '$FIELD' group by $KEY_COLUMN  order by $KEY_COLUMN ; "    > field_$FIELD
+  done
+
+   # Add Date (this is different from the other pivot tables 
+   $MYSQL_CHAIN2 -e " SELECT DATE_FORMAT(( CURDATE() ), '%Y-%m-%d')  AS 'Fecha' from  $TABLE_TO_PIVOT  WHERE Property = 'id' ; "    > field_Fecha
+
+  # Merge all attribute files into a single one 
+  paste -d',' field_* > $MY_TABLA
+  $MYSQL_CHAIN2 -e " DROP TABLE $MY_TABLA "
+  php ${PHP_SCRIPT} $MY_TABLA $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME
+
+  rm -f field_* $MY_TABLA
+  CheckTable $MY_TABLA
+}
 
 
+
+# Add indexes
+OptimizeTables( )
+{
+INDEXES="nova_list_all_tenants.Status \
+nova_list_all_tenants.ID \
+show_instance_pivot.Flavor \
+nova_show_instance_pivot.ID \
+nova_show_instance_pivot.Name \
+nova_flavor_list.Name \ 
+nova_flavor_list.ID \
+nova_flavor_list.Memory_MB \ 
+nova_flavor_list.VCPUs \
+nova_flavor_list.Disk
+"
+for index in ` echo $INDEXES`
+do
+  index_table=`echo $index | cut -d\. -f1`
+  index_column=`echo $index | cut -d\. -f2`
+  ${MYSQL_CHAIN} -e " ALTER TABLE ${MYSQL_DATABASE}.${index_table}  ADD INDEX  (${index_column});" 
+  ${MYSQL_CHAIN} -e " ALTER TABLE ${MYSQL_DATABASE}_accumulated.${index_table}  ADD INDEX  (${index_column});" 
+
+done
+ 
 }
 PostWork( )
 {
- # PivotTable
-  
+  PivotTable
   PivotTable2
+  # Cinder volumes
+  PivotTable3
+  OptimizeTables
 }
 
 PreWork( )
@@ -231,7 +289,6 @@ $MYSQL_CHAIN -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE "
 CleanSpool
 }
 PreWork $1
-
 # First we load commands without arguments, needed to generate commands that need arguments like <tenant_id>
 Generate_Without_Arguments_Data
 Load_Data
@@ -241,6 +298,8 @@ CleanSpool
  
 Generate_With_Arguments_Data
 Load_Data
+
+OptimizeTables
 
 PostWork
 # Send to graphite

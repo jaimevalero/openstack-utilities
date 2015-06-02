@@ -15,7 +15,7 @@ MY_PARAM=""
 HEADER=""
 MAX_HEADER_LENGTH=0
 
-USAGE_WINDOW=365
+USAGE_WINDOW=400
 
 MostrarLog( )
 {
@@ -97,20 +97,20 @@ MostrarLog MYSQL_CHAIN=$MYSQL_CHAIN
 
 # Extract list of parameter from the parameter name
 case $PARAMETER in
-   instance)           echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from nova_os_tenant_name_tenan   \" | grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
+   instance)           echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from nova_os_tenant_name_tenan UNION SELECT id AS QUITAR from nova_list_all_tenants  \" |sort -du |grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
    tenant_id)          echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from keystone_tenant_list  \" | grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
    tenant|tenant_name) echo " $MYSQL_CHAIN -e \" SELECT name AS QUITAR from keystone_tenant_list \" | grep -v QUITAR  > $PARAMETER_LIST " > ./kk-exec ;;
    hypervisor_id)      echo " $MYSQL_CHAIN -e \" SELECT ID AS QUITAR from nova_hypervisor_list \" | grep -v QUITAR  > $PARAMETER_LIST "   > ./kk-exec ;;
    intervalo_date) GetIntervalDates  > $PARAMETER_LIST ;;
    hypervisor|hypervisor_name) echo " $MYSQL_CHAIN -e \" SELECT Hypervisorhostname AS QUITAR from nova_hypervisor_list \" | grep -v QUITAR > $PARAMETER_LIST"  > ./kk-exec  ;;
    today) echo ">"`date --date "20 day ago" +'%Y-%m-%d'`"T00:00" > $PARAMETER_LIST;;
-
+   volume_id) echo " $MYSQL_CHAIN -e \" SELECT ID AS QUITAR from cinder_list_all_tenants  \" | grep -v QUITAR > $PARAMETER_LIST"  > ./kk-exec  ;;
    *) echo "Sorry, Unknown parameter $PARAMETER ";;
 esac
 
 [ -f kk-exec ] && chmod +x kk-exec ; ./kk-exec ; rm -f ./kk-exec 2>/dev/null
 
-MostrarLog PARAMETER_LIST=`cat $PARAMETER_LIST`
+MostrarLog PARAMETER_LIST: `cat $PARAMETER_LIST| wc -l`" filas. "`cat $PARAMETER_LIST`
 }
 
 # REmove the header of a csv
