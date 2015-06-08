@@ -27,10 +27,12 @@ keystone user-list --tenant <tenant_name>
 ############################
 # Networking - Neutron
 ############################
-neutron quota-list
 neutron floatingip-list
-neutron port-list
 neutron net-external-list
+neutron net-list
+neutron port-list
+neutron quota-list
+neutron subnet-list
 ############################
 # Compute - Nova
 ############################
