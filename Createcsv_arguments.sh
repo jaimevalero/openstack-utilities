@@ -70,6 +70,7 @@ FixForSpecialParameters( )
 {
 # Extract list of parameter from the parameter name
 case $PARAMETER in
+   subnet)  continue ;;
    instance) AddDateColumn ./spool/$FILE_NAME.csv;FixRx ./spool/$FILE_NAME.csv  ;continue;;
    tenant_id) continue ;;
    tenant|tenant_name) continue ;; 
@@ -97,6 +98,7 @@ MostrarLog MYSQL_CHAIN=$MYSQL_CHAIN
 
 # Extract list of parameter from the parameter name
 case $PARAMETER in
+   subnet)             echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from neutron_net_list  \" |sort -du |grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
    instance)           echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from nova_os_tenant_name_tenan UNION SELECT id AS QUITAR from nova_list_all_tenants  \" |sort -du |grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
    tenant_id)          echo " $MYSQL_CHAIN -e \" SELECT id AS QUITAR from keystone_tenant_list  \" | grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
    tenant|tenant_name) echo " $MYSQL_CHAIN -e \" SELECT name AS QUITAR from keystone_tenant_list \" | grep -v QUITAR  > $PARAMETER_LIST " > ./kk-exec ;;

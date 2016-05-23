@@ -14,6 +14,7 @@ cinder list --all_tenants
 cinder service-list
 cinder show <volume_id>
 cinder quota-usage <tenant_name>
+glance image-list
 ############################
 # Identify Service Keystone
 ############################
@@ -33,6 +34,7 @@ neutron net-list
 neutron port-list
 neutron quota-list
 neutron subnet-list
+neutron show <subnet>
 ############################
 # Compute - Nova
 ############################
@@ -50,6 +52,7 @@ nova image-list
 nova list --all-tenants
 nova net-list
 nova quota-defaults
+nova quota-show --tenant <tenant_name>
 nova show "<instance>"
 nova usage-list <intervalo_date>
 nova --os-tenant-name <tenant_name> list
