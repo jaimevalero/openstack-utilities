@@ -10,49 +10,49 @@
 ############################
 # Block Storage - Cinder
 ############################
-cinder list --all_tenants
-cinder service-list
-cinder show <volume_id>
-cinder quota-usage <tenant_name>
-glance image-list
+cinder --insecure list --all_tenants
+cinder --insecure service-list
+cinder --insecure show <volume_id>
+cinder --insecure quota-usage <tenant_name>
+glance --insecure image-list
 ############################
 # Identify Service Keystone
 ############################
-keystone ec2-credentials-list
-keystone endpoint-list
-keystone role-list
-keystone service-list 
-keystone tenant-list
-keystone user-list 
-keystone user-list --tenant <tenant_name>
+keystone --insecure ec2-credentials-list
+keystone --insecure endpoint-list
+keystone --insecure role-list
+keystone --insecure service-list 
+keystone --insecure tenant-list
+keystone --insecure user-list 
+keystone --insecure user-list --tenant <tenant_name>
 ############################
 # Networking - Neutron
 ############################
-neutron floatingip-list
-neutron net-external-list
-neutron net-list
-neutron port-list
-neutron quota-list
-neutron subnet-list
-neutron show <subnet>
+neutron --insecure floatingip-list
+neutron --insecure net-external-list
+neutron --insecure net-list
+neutron --insecure port-list
+neutron --insecure quota-list
+neutron --insecure subnet-list
+neutron --insecure show <subnet>
 ############################
 # Compute - Nova
 ############################
-nova aggregate-list
-nova flavor-list
-nova floating-ip-list
-nova floating-ip-pool-list
-nova diagnostics <instance>
-nova host-list
-nova hypervisor-stats
-nova hypervisor-list
-nova hypervisor-servers <hypervisor>
-nova hypervisor-show <hypervisor>
-nova image-list
-nova list --all-tenants
-nova net-list
-nova quota-defaults
-nova quota-show --tenant <tenant_name>
-nova show "<instance>"
-nova usage-list <intervalo_date>
-nova --os-tenant-name <tenant_name> list
+nova --insecure aggregate-list
+nova --insecure flavor-list
+nova --insecure floating-ip-list
+nova --insecure floating-ip-pool-list
+nova --insecure diagnostics <instance>
+nova --insecure host-list
+nova --insecure hypervisor-stats
+nova --insecure hypervisor-list
+nova --insecure hypervisor-servers <hypervisor>
+nova --insecure hypervisor-show <hypervisor>
+nova --insecure image-list
+nova --insecure list --all-tenants
+nova --insecure net-list
+nova --insecure quota-defaults
+nova --insecure quota-show --tenant <tenant_name>
+nova --insecure show "<instance>"
+nova --insecure usage-list <intervalo_date>
+nova --insecure --os-tenant-name <tenant_name> list

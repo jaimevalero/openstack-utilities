@@ -90,7 +90,7 @@ GetParameterList( )
 # Get parameter to be replaced
 PARAMETER=` echo $@ | cut -d\> -f1 | cut -d\< -f2`
 
-FILE_NAME=`echo $@ | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g' |sed -e 's/statistics//g' | sed -e 's/meter//g' | sed -e 's/\(_\)*/\1/g' |  sed -e 's/sample_list//g' | sed -e 's/__/_/g'  |cut -c1-25 `
+FILE_NAME=`echo $@ | sed -e 's/ --insecure//g' | grep -o -i -e '[A-Z]*' |  grep -o -i -e '[0-9]*' -e '[A-Z]*' | sed ':a;N;$!ba;s/\n/_/g' |sed -e 's/statistics//g' | sed -e 's/meter//g' | sed -e 's/\(_\)*/\1/g' |  sed -e 's/sample_list//g' | sed -e 's/__/_/g'  |cut -c1-25 `
 
 MostrarLog All arguments=$@
 MostrarLog PARAMETER=$PARAMETER
