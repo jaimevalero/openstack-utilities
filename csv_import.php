@@ -95,6 +95,8 @@ echo "$numero_filas Filas\n";
 } 
 
 
+system("/root/scripts/vmware/refresh_index.sh $database $table  & " ) ;
+
 
 
 

@@ -100,8 +100,15 @@ MostrarLog MYSQL_CHAIN=$MYSQL_CHAIN
 case $PARAMETER in
    subnet)             echo " $MYSQL_CHAIN -e \" SELECT id   AS QUITAR from neutron_net_list       \" | sort -du |grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
    instance)           echo " $MYSQL_CHAIN -e \" SELECT id   AS QUITAR from nova_list_all_tenants  \" | sort -du |grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
-   tenant_id)          echo " $MYSQL_CHAIN -e \" SELECT id   AS QUITAR from keystone_tenant_list   \" | grep -v QUITAR           > $PARAMETER_LIST  " > ./kk-exec ;;
-   tenant|tenant_name) echo " $MYSQL_CHAIN -e \" SELECT name AS QUITAR from keystone_tenant_list   \" | grep -v QUITAR           > $PARAMETER_LIST "  > ./kk-exec ;;
+   tenant_id)          
+             echo " $MYSQL_CHAIN -e \" SELECT id   AS QUITAR from keystone_tenant_list   \" | grep -v QUITAR           > $PARAMETER_LIST  " > ./kk-exec 
+             echo " $MYSQL_CHAIN -e \" SELECT id   AS QUITAR from project                \" | grep -v QUITAR           >> $PARAMETER_LIST  " > ./kk-exec ;;
+
+   tenant|tenant_name) 
+              echo " $MYSQL_CHAIN -e \" SELECT name AS QUITAR from keystone_tenant_list   \" | grep -v QUITAR           > $PARAMETER_LIST "  > ./kk-exec 
+              echo " $MYSQL_CHAIN -e \" SELECT name   AS QUITAR from project   \" | grep -v QUITAR           >> $PARAMETER_LIST  " > ./kk-exec ;;
+        
+
    hypervisor_id)      echo " $MYSQL_CHAIN -e \" SELECT ID   AS QUITAR from nova_hypervisor_list   \" | grep -v QUITAR           > $PARAMETER_LIST "  > ./kk-exec ;;
    intervalo_date) GetIntervalDates  > $PARAMETER_LIST ;;
    hypervisor|hypervisor_name) echo " $MYSQL_CHAIN -e \" SELECT Hypervisorhostname AS QUITAR from nova_hypervisor_list \" | grep -v QUITAR > $PARAMETER_LIST"  > ./kk-exec  ;;
@@ -176,6 +183,9 @@ Execute( )
 
 GetParameterList "${@}"
 
+# Pattch for project table
+cat  $PARAMETER_LIST | sort -du >  $PARAMETER_LIST.temp
+mv -f $PARAMETER_LIST.temp $PARAMETER_LIST
 
 while read MY_PARAM 
 do
