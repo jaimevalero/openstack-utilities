@@ -96,6 +96,7 @@ MostrarLog All arguments=$@
 MostrarLog PARAMETER=$PARAMETER
 MostrarLog MYSQL_CHAIN=$MYSQL_CHAIN
 
+>  $PARAMETER_LIST
 # Extract list of parameter from the parameter name
 case $PARAMETER in
    subnet)             echo " $MYSQL_CHAIN -e \" SELECT id   AS QUITAR from neutron_net_list       \" | sort -du |grep -v QUITAR > $PARAMETER_LIST  " > ./kk-exec ;;
@@ -184,8 +185,9 @@ Execute( )
 GetParameterList "${@}"
 
 # Pattch for project table
-cat  $PARAMETER_LIST | sort -du >  $PARAMETER_LIST.temp
-mv -f $PARAMETER_LIST.temp $PARAMETER_LIST
+#cat  $PARAMETER_LIST | sort -du >  $PARAMETER_LIST.temp.2
+#mv -f $PARAMETER_LIST.temp.2 $PARAMETER_LIST
+MostrarLog "Lista de parámetros" `cat $PARAMETER_LIST`
 
 while read MY_PARAM 
 do

@@ -49,8 +49,9 @@ InsertTable( )
 
   MostrarLog php ${PHP_SCRIPT} spool/$MY_TABLA.csv $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME 
 
-  php ${PHP_SCRIPT} spool/$MY_TABLA.csv $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME 2>/dev/null 1>/dev/null
-
+  echo "php ${PHP_SCRIPT} spool/$MY_TABLA.csv $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME" > kk-exec
+ chmod +x kk-exec  ; ./kk-exec ; rm -f kk-exec
+ 
   CheckTable $MY_TABLA
 }
 # Drop table
@@ -229,6 +230,95 @@ PivotTable3( )
   CheckTable $MY_TABLA
 }
 
+PivotTable4( )
+{
+  MY_TABLA=neutron_quota_show_tenant_pivot
+  TABLE_TO_PIVOT=neutron_quota_show_tenant
+  KEY_COLUMN=tenant_name	
+  rm -f field_*
+  PHP_SCRIPT=csv_import.php
+  export MYSQL_CHAIN2=" mysql -u$MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOSTNAME $MYSQL_DATABASE"
+
+  # Extract a file for each attribute of the key value table
+  FIELD_LIST=`$MYSQL_CHAIN2 -e "  SELECT Field AS QUITAR from $TABLE_TO_PIVOT  group by Field " | grep -v QUITAR `
+  MostrarLog FIELD_LIST: $FIELD_LIST
+  for FIELD in `echo $FIELD_LIST`
+  do
+    MostrarLog " $MYSQL_CHAIN2 -e \" SELECT Value AS $FIELD from $TABLE_TO_PIVOT WHERE Field = '$FIELD' group by $KEY_COLUMN  order by $KEY_COLUMN ; \""
+    FIELD_FILTERED=`echo $FIELD |  tr ':' '_'| tr '-' '_' `
+    $MYSQL_CHAIN2 -e " SELECT VALUE AS $FIELD_FILTERED from $TABLE_TO_PIVOT WHERE Field = '$FIELD' group by $KEY_COLUMN  order by $KEY_COLUMN ; "    > field_$FIELD
+  done
+   $MYSQL_CHAIN2 -e " SELECT $KEY_COLUMN   from  $TABLE_TO_PIVOT  GROUP BY $KEY_COLUMN ; "    > field_$KEY_COLUMN
+ 
+#
+  # Merge all attribute files into a single one 
+  paste -d',' field_* > $MY_TABLA
+  $MYSQL_CHAIN2 -e " DROP TABLE $MY_TABLA "
+  php ${PHP_SCRIPT} $MY_TABLA $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME
+
+  rm -f field_* $MY_TABLA
+  CheckTable $MY_TABLA
+}
+
+PivotTable4( )
+{
+  MY_TABLA=neutron_quota_show_tenant_pivot
+  TABLE_TO_PIVOT=neutron_quota_show_tenant
+  KEY_COLUMN=tenant_name
+  rm -f field_*
+  PHP_SCRIPT=csv_import.php
+  export MYSQL_CHAIN2=" mysql -u$MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOSTNAME $MYSQL_DATABASE"
+
+  # Extract a file for each attribute of the key value table
+  FIELD_LIST=`$MYSQL_CHAIN2 -e "  SELECT Field AS QUITAR from $TABLE_TO_PIVOT  group by Field " | grep -v QUITAR `
+  MostrarLog FIELD_LIST: $FIELD_LIST
+  for FIELD in `echo $FIELD_LIST`
+  do
+    MostrarLog " $MYSQL_CHAIN2 -e \" SELECT Value AS $FIELD from $TABLE_TO_PIVOT WHERE Field = '$FIELD' group by $KEY_COLUMN  order by $KEY_COLUMN ; \""
+    FIELD_FILTERED=`echo $FIELD |  tr ':' '_'| tr '-' '_' `
+    $MYSQL_CHAIN2 -e " SELECT VALUE AS $FIELD_FILTERED from $TABLE_TO_PIVOT WHERE Field = '$FIELD' group by $KEY_COLUMN  order by $KEY_COLUMN ; "    > field_$FIELD
+  done
+   $MYSQL_CHAIN2 -e " SELECT $KEY_COLUMN   from  $TABLE_TO_PIVOT  GROUP BY $KEY_COLUMN ; "    > field_$KEY_COLUMN
+
+#
+  # Merge all attribute files into a single one 
+  paste -d',' field_* > $MY_TABLA
+  $MYSQL_CHAIN2 -e " DROP TABLE $MY_TABLA "
+  php ${PHP_SCRIPT} $MY_TABLA $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME
+
+  rm -f field_* $MY_TABLA
+  CheckTable $MY_TABLA
+}
+
+
+PivotTable5( )
+{
+  MY_TABLA=nova_quota_show_tenant_te_pivot
+  TABLE_TO_PIVOT=nova_quota_show_tenant_te
+  KEY_COLUMN=tenant_name
+  rm -f Quota_* field_*
+  PHP_SCRIPT=csv_import.php
+  export MYSQL_CHAIN2=" mysql -u$MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOSTNAME $MYSQL_DATABASE"
+
+  # Extract a file for each attribute of the key value table
+  FIELD_LIST=`$MYSQL_CHAIN2 -e "  SELECT Quota AS QUITAR from $TABLE_TO_PIVOT  group by Quota " | grep -v QUITAR `
+  MostrarLog Quota_LIST: $FIELD_LIST
+  for Quota in `echo $FIELD_LIST`
+  do
+    MostrarLog " $MYSQL_CHAIN2 -e \" SELECT Limite AS $Quota from $TABLE_TO_PIVOT WHERE Quota = '$Quota' group by $KEY_COLUMN  order by $KEY_COLUMN ; \""
+    Quota_FILTERED=`echo $Quota |  tr ':' '_'| tr '-' '_' `
+    $MYSQL_CHAIN2 -e " SELECT Limite AS $Quota_FILTERED from $TABLE_TO_PIVOT WHERE Quota = '$Quota' group by $KEY_COLUMN  order by $KEY_COLUMN ; "    > Quota_$Quota
+  done
+   $MYSQL_CHAIN2 -e " SELECT $KEY_COLUMN   from  $TABLE_TO_PIVOT  GROUP BY $KEY_COLUMN ; "    > Quota_$KEY_COLUMN
+
+#
+  # Merge all attribute files into a single one 
+  paste -d',' Quota_* > $MY_TABLA
+  php ${PHP_SCRIPT} $MY_TABLA $MY_TABLA $MYSQL_DATABASE $MYSQL_USER $MYSQL_PASS $MYSQL_HOSTNAME
+
+  rm -f Quota_* $MY_TABLA
+  CheckTable $MY_TABLA
+}
 
 
 # Add indexes
@@ -261,7 +351,9 @@ PostWork( )
   PivotTable2
   # Cinder volumes
   PivotTable3
-  OptimizeTables
+  PivotTable4 
+  PivotTable5
+ ###OptimizeTables
 }
 
 PreWork( )

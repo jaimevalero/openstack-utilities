@@ -1,12 +1,6 @@
-############################
-# Metrics - CeiloMeter
-############################
-#ceilometer sample-list -m instance -q"timestamp<today>"
-#ceilometer sample-list -m vcpus -q"timestamp<today>"
-#ceilometer sample-list -m memory -q"timestamp<today>"
-#ceilometer sample-list -m disk.ephemeral.size -q"timestamp<today>"
-#ceilometer sample-list -m disk.root.size -q"timestamp<today>"
-#
+#nova    --insecure quota-show --tenant <tenant_id>
+#cinder  --insecure quota-show <tenant_id>
+#neutron --insecure quota-show --tenant_id  <tenant_id> 
 ############################
 # Block Storage - Cinder
 ############################
@@ -24,7 +18,7 @@ keystone --insecure role-list
 keystone --insecure service-list 
 keystone --insecure tenant-list
 keystone --insecure user-list 
-keystone --insecure user-list --tenant <tenant_name>
+keystone --insecure user-list --tenant-id <tenant_id>
 ############################
 # Networking - Neutron
 ############################
@@ -33,6 +27,7 @@ neutron --insecure net-external-list
 neutron --insecure net-list
 neutron --insecure port-list
 neutron --insecure quota-list
+neutron --insecure quota-show --tenant-id <tenant_name>
 neutron --insecure subnet-list
 neutron --insecure show <subnet>
 ############################
@@ -52,7 +47,16 @@ nova --insecure image-list
 nova --insecure list --all-tenants
 nova --insecure net-list
 nova --insecure quota-defaults
-nova --insecure quota-show --tenant <tenant_name>
+nova --insecure quota-show --tenant <tenant_id>
 nova --insecure show "<instance>"
 nova --insecure usage-list <intervalo_date>
 nova --insecure --os-tenant-name <tenant_name> list
+############################
+# Metrics - CeiloMeter
+############################
+#ceilometer sample-list -m instance -q"timestamp<today>"
+#ceilometer sample-list -m vcpus -q"timestamp<today>"
+#ceilometer sample-list -m memory -q"timestamp<today>"
+#ceilometer sample-list -m disk.ephemeral.size -q"timestamp<today>"
+#ceilometer sample-list -m disk.root.size -q"timestamp<today>"
+
